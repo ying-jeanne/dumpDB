@@ -1,0 +1,40 @@
+---
+# docker-compose up
+# no quote and no {} no commas
+# example of array element is
+# to parse yml is slower than parsing json, because everything is string and then we need to convert it to the right type
+# tags:
+#   - tag1
+#   - tag2
+version: "3.8"
+
+services:
+  database:
+    build:
+      context: ./mysql_tests
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: grafana_tests
+      MYSQL_USER: grafana
+      MYSQL_PASSWORD: password
+    ports:
+      - "3306:3306"
+    container_name: database
+  grafana:
+    build: 
+      context: ./grafana
+    container_name: grafana
+    ports:
+    # 3000 of computer to 3000 of container
+      - "3000:3000"
+    depends_on:
+      - database
+    command: sh -c "/wait"
+    environment:
+      GF_DATABASE_TYPE: mysql
+      GF_DATABASE_HOST: database:3306
+      GF_DATABASE_NAME: grafana_ds_tests
+      GF_DATABASE_USER: grafana
+      GF_DATABASE_PASSWORD: password
+      WAIT_HOSTS: mysql:3306
+      WAIT_HOSTS_TIMEOUT: 10
