@@ -68,10 +68,15 @@ def mysqlWrite(lastId: int, version: str) -> int:
     # query1 = 'SELECT id FROM migration_log WHERE migration_id = "create folder table" AND success=1;'
     curs.execute(query1)
     currentId = curs.fetchone()
-    query2 = 'SELECT id, migration_id, `sql` FROM migration_log WHERE success=1 ORDER BY id ASC;'
-    queryStr2 = query2.format(lastId)
-    print(queryStr2)
-    curs.execute(queryStr2)
+    print("the result is:", currentId)
+    query2 = f'SELECT id, migration_id, `sql` FROM migration_log WHERE success=1 AND id>{lastId} ORDER BY id ASC;'
+    print(query2)
+    curs.execute(query2)
+    
+    if not curs.rowcount:
+        print("no result for version %s" %(version)) 
+        return currentId[0]
+    
     # Fetch and output result
     result = curs.fetchall()
 
@@ -84,7 +89,7 @@ def mysqlWrite(lastId: int, version: str) -> int:
 
     # Close the cursor
     curs.close()
-    return currentId
+    return currentId[0]
 
 if __name__ == '__main__':
     versions = [
@@ -92,6 +97,18 @@ if __name__ == '__main__':
         "7.1.0",
         "7.2.0",
         "7.3.0",
+        "7.4.0",
+        "7.5.0",
+        "8.0.0",
+        "8.1.0",
+        "8.2.0",
+        "8.3.0",
+        "8.4.0",
+        "8.5.0",
+        "9.0.0",
+        "9.1.0",
+        "9.2.0",
+        "9.3.0"
     ]
     lastId = 0
     for version in versions:
@@ -107,4 +124,3 @@ if __name__ == '__main__':
         lastId = mysqlWrite(lastId, version)
         docker.compose.down()
         docker.compose.rm()
-        print("the last id is: %d" %(lastId))
