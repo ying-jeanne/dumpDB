@@ -4,10 +4,6 @@ alter table `user` ADD COLUMN `is_service_account` TINYINT(1) NOT NULL DEFAULT 0
 alter table `api_key` ADD COLUMN `service_account_id` BIGINT(20) NULL
 -- Add column week_start in preferences
 alter table `preferences` ADD COLUMN `week_start` VARCHAR(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL
--- move dashboard alerts to unified alerting
-code migration
--- clone move dashboard alerts to unified alerting
-code migration
 -- create data_keys table
 CREATE TABLE IF NOT EXISTS `data_keys` ( `name` VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci PRIMARY KEY NOT NULL , `active` TINYINT(1) NOT NULL , `scope` VARCHAR(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL , `provider` VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL , `encrypted_data` BLOB NOT NULL , `created` DATETIME NOT NULL , `updated` DATETIME NOT NULL ) ENGINE=InnoDB DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci;
 -- update dashboard_uid and panel_id from existing annotations

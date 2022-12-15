@@ -28,8 +28,6 @@ alter table `user` ADD COLUMN `help_flags1` BIGINT(20) NOT NULL DEFAULT 0
 ALTER TABLE `user` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci, MODIFY `login` VARCHAR(190) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL , MODIFY `email` VARCHAR(190) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL , MODIFY `name` VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL , MODIFY `password` VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL , MODIFY `salt` VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL , MODIFY `rands` VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL , MODIFY `company` VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL , MODIFY `theme` VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL ;
 -- Add last_seen_at column to user
 alter table `user` ADD COLUMN `last_seen_at` DATETIME NULL
--- Add missing user data
-code migration
 -- Add is_disabled column to user
 alter table `user` ADD COLUMN `is_disabled` TINYINT(1) NOT NULL DEFAULT 0
 -- Add index user.login/user.email
@@ -370,8 +368,6 @@ alter table `annotation` ADD COLUMN `epoch_end` BIGINT(20) NOT NULL DEFAULT 0
 CREATE INDEX `IDX_annotation_org_id_epoch_epoch_end` ON `annotation` (`org_id`,`epoch`,`epoch_end`);
 -- Make epoch_end the same as epoch
 UPDATE annotation SET epoch_end = epoch
--- Move region to single row
-code migration
 -- Remove index org_id_epoch from annotation table
 DROP INDEX `IDX_annotation_org_id_epoch` ON `annotation`
 -- Remove index org_id_dashboard_id_panel_id_epoch from annotation table
