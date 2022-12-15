@@ -19,7 +19,7 @@ CREATE UNIQUE INDEX `UQE_user_login` ON `user` (`login`);
 -- create index UQE_user_email - v2
 CREATE UNIQUE INDEX `UQE_user_email` ON `user` (`email`);
 -- copy data_source v1 to v2
-INSERT INTO `user` (`updated` , `id` , `login` , `email` , `name` , `password` , `is_admin` , `version` , `salt` , `rands` , `company` , `org_id` , `created`) SELECT `updated` , `id` , `login` , `email` , `name` , `password` , `is_admin` , `version` , `salt` , `rands` , `company` , `account_id` , `created` FROM `user_v1`
+INSERT INTO `user` (`password` , `salt` , `rands` , `id` , `version` , `login` , `email` , `name` , `company` , `org_id` , `is_admin` , `created` , `updated`) SELECT `password` , `salt` , `rands` , `id` , `version` , `login` , `email` , `name` , `company` , `account_id` , `is_admin` , `created` , `updated` FROM `user_v1`
 -- Drop old table user_v1
 DROP TABLE IF EXISTS `user_v1`
 -- Add column help_flags1 to user table
@@ -46,6 +46,32 @@ CREATE INDEX `IDX_temp_user_code` ON `temp_user` (`code`);
 CREATE INDEX `IDX_temp_user_status` ON `temp_user` (`status`);
 -- Update temp_user table charset
 ALTER TABLE `temp_user` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci, MODIFY `email` VARCHAR(190) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL , MODIFY `name` VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL , MODIFY `role` VARCHAR(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL , MODIFY `code` VARCHAR(190) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL , MODIFY `status` VARCHAR(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL , MODIFY `remote_addr` VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL ;
+-- drop index IDX_temp_user_email - v1
+DROP INDEX `IDX_temp_user_email` ON `temp_user`
+-- drop index IDX_temp_user_org_id - v1
+DROP INDEX `IDX_temp_user_org_id` ON `temp_user`
+-- drop index IDX_temp_user_code - v1
+DROP INDEX `IDX_temp_user_code` ON `temp_user`
+-- drop index IDX_temp_user_status - v1
+DROP INDEX `IDX_temp_user_status` ON `temp_user`
+-- Rename table temp_user to temp_user_tmp_qwerty - v1
+ALTER TABLE `temp_user` RENAME TO `temp_user_tmp_qwerty`
+-- create temp_user v2
+CREATE TABLE IF NOT EXISTS `temp_user` ( `id` BIGINT(20) PRIMARY KEY AUTO_INCREMENT NOT NULL , `org_id` BIGINT(20) NOT NULL , `version` INT NOT NULL , `email` VARCHAR(190) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL , `name` VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL , `role` VARCHAR(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL , `code` VARCHAR(190) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL , `status` VARCHAR(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL , `invited_by_user_id` BIGINT(20) NULL , `email_sent` TINYINT(1) NOT NULL , `email_sent_on` DATETIME NULL , `remote_addr` VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL , `created` INT NOT NULL DEFAULT 0 , `updated` INT NOT NULL DEFAULT 0 ) ENGINE=InnoDB DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci;
+-- create index IDX_temp_user_email - v2
+CREATE INDEX `IDX_temp_user_email` ON `temp_user` (`email`);
+-- create index IDX_temp_user_org_id - v2
+CREATE INDEX `IDX_temp_user_org_id` ON `temp_user` (`org_id`);
+-- create index IDX_temp_user_code - v2
+CREATE INDEX `IDX_temp_user_code` ON `temp_user` (`code`);
+-- create index IDX_temp_user_status - v2
+CREATE INDEX `IDX_temp_user_status` ON `temp_user` (`status`);
+-- copy temp_user v1 to v2
+INSERT INTO `temp_user` (`email_sent_on` , `remote_addr` , `id` , `org_id` , `email` , `invited_by_user_id` , `email_sent` , `version` , `name` , `role` , `code` , `status`) SELECT `email_sent_on` , `remote_addr` , `id` , `org_id` , `email` , `invited_by_user_id` , `email_sent` , `version` , `name` , `role` , `code` , `status` FROM `temp_user_tmp_qwerty`
+-- drop temp_user_tmp_qwerty
+DROP TABLE IF EXISTS `temp_user_tmp_qwerty`
+-- Set created for temp users that will otherwise prematurely expire
+code migration
 -- create star table
 CREATE TABLE IF NOT EXISTS `star` ( `id` BIGINT(20) PRIMARY KEY AUTO_INCREMENT NOT NULL , `user_id` BIGINT(20) NOT NULL , `dashboard_id` BIGINT(20) NOT NULL ) ENGINE=InnoDB DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci;
 -- add unique index star.user_id_dashboard_id
@@ -87,7 +113,7 @@ CREATE INDEX `IDX_dashboard_org_id` ON `dashboard` (`org_id`);
 -- create index UQE_dashboard_org_id_slug - v2
 CREATE UNIQUE INDEX `UQE_dashboard_org_id_slug` ON `dashboard` (`org_id`,`slug`);
 -- copy dashboard v1 to v2
-INSERT INTO `dashboard` (`data` , `org_id` , `created` , `updated` , `id` , `version` , `slug` , `title`) SELECT `data` , `account_id` , `created` , `updated` , `id` , `version` , `slug` , `title` FROM `dashboard_v1`
+INSERT INTO `dashboard` (`org_id` , `created` , `updated` , `id` , `version` , `slug` , `title` , `data`) SELECT `account_id` , `created` , `updated` , `id` , `version` , `slug` , `title` , `data` FROM `dashboard_v1`
 -- drop table dashboard_v1
 DROP TABLE IF EXISTS `dashboard_v1`
 -- alter dashboard.data to mediumtext v1
@@ -139,7 +165,7 @@ CREATE INDEX `IDX_dashboard_provisioning_dashboard_id` ON `dashboard_provisionin
 -- create index IDX_dashboard_provisioning_dashboard_id_name - v2
 CREATE INDEX `IDX_dashboard_provisioning_dashboard_id_name` ON `dashboard_provisioning` (`dashboard_id`,`name`);
 -- copy dashboard_provisioning v1 to v2
-INSERT INTO `dashboard_provisioning` (`name` , `external_id` , `id` , `dashboard_id`) SELECT `name` , `external_id` , `id` , `dashboard_id` FROM `dashboard_provisioning_tmp_qwerty`
+INSERT INTO `dashboard_provisioning` (`external_id` , `id` , `dashboard_id` , `name`) SELECT `external_id` , `id` , `dashboard_id` , `name` FROM `dashboard_provisioning_tmp_qwerty`
 -- drop dashboard_provisioning_tmp_qwerty
 DROP TABLE IF EXISTS `dashboard_provisioning_tmp_qwerty`
 -- Add check_sum column
@@ -165,7 +191,7 @@ CREATE INDEX `IDX_data_source_org_id` ON `data_source` (`org_id`);
 -- create index UQE_data_source_org_id_name - v2
 CREATE UNIQUE INDEX `UQE_data_source_org_id_name` ON `data_source` (`org_id`,`name`);
 -- copy data_source v1 to v2
-INSERT INTO `data_source` (`access` , `database` , `user` , `password` , `id` , `type` , `basic_auth` , `basic_auth_password` , `updated` , `version` , `url` , `basic_auth_user` , `is_default` , `created` , `org_id` , `name`) SELECT `access` , `database` , `user` , `password` , `id` , `type` , `basic_auth` , `basic_auth_password` , `updated` , `version` , `url` , `basic_auth_user` , `is_default` , `created` , `account_id` , `name` FROM `data_source_v1`
+INSERT INTO `data_source` (`basic_auth_password` , `updated` , `version` , `type` , `password` , `created` , `name` , `basic_auth_user` , `is_default` , `user` , `database` , `basic_auth` , `id` , `access` , `url` , `org_id`) SELECT `basic_auth_password` , `updated` , `version` , `type` , `password` , `created` , `name` , `basic_auth_user` , `is_default` , `user` , `database` , `basic_auth` , `id` , `access` , `url` , `account_id` FROM `data_source_v1`
 -- Drop old table data_source_v1 #2
 DROP TABLE IF EXISTS `data_source_v1`
 -- Add column with_credentials
@@ -213,7 +239,7 @@ CREATE UNIQUE INDEX `UQE_api_key_key` ON `api_key` (`key`);
 -- create index UQE_api_key_org_id_name - v2
 CREATE UNIQUE INDEX `UQE_api_key_org_id_name` ON `api_key` (`org_id`,`name`);
 -- copy api_key v1 to v2
-INSERT INTO `api_key` (`role` , `created` , `updated` , `id` , `org_id` , `name` , `key`) SELECT `role` , `created` , `updated` , `id` , `account_id` , `name` , `key` FROM `api_key_v1`
+INSERT INTO `api_key` (`id` , `org_id` , `name` , `key` , `role` , `created` , `updated`) SELECT `id` , `account_id` , `name` , `key` , `role` , `created` , `updated` FROM `api_key_v1`
 -- Drop old table api_key_v1
 DROP TABLE IF EXISTS `api_key_v1`
 -- Update api_key table charset
@@ -238,6 +264,8 @@ ALTER TABLE dashboard_snapshot MODIFY dashboard MEDIUMTEXT;
 ALTER TABLE `dashboard_snapshot` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci, MODIFY `name` VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL , MODIFY `key` VARCHAR(190) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL , MODIFY `delete_key` VARCHAR(190) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL , MODIFY `external_url` VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL , MODIFY `dashboard` MEDIUMTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL ;
 -- Add column external_delete_url to dashboard_snapshots table
 alter table `dashboard_snapshot` ADD COLUMN `external_delete_url` VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL
+-- Add encrypted dashboard json column
+alter table `dashboard_snapshot` ADD COLUMN `dashboard_encrypted` BLOB NULL
 -- create quota table v1
 CREATE TABLE IF NOT EXISTS `quota` ( `id` BIGINT(20) PRIMARY KEY AUTO_INCREMENT NOT NULL , `org_id` BIGINT(20) NULL , `user_id` BIGINT(20) NULL , `target` VARCHAR(190) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL , `limit` BIGINT(20) NOT NULL , `created` DATETIME NOT NULL , `updated` DATETIME NOT NULL ) ENGINE=InnoDB DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci;
 -- create index UQE_quota_org_id_user_id_target - v1
@@ -326,6 +354,14 @@ UPDATE alert_notification SET uid=lpad(id,9,'0') WHERE uid IS NULL;
 CREATE UNIQUE INDEX `UQE_alert_notification_org_id_uid` ON `alert_notification` (`org_id`,`uid`);
 -- Remove unique index org_id_name
 DROP INDEX `UQE_alert_notification_org_id_name` ON `alert_notification`
+-- Add column secure_settings in alert_notification
+alter table `alert_notification` ADD COLUMN `secure_settings` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL
+-- alter alert.settings to mediumtext
+ALTER TABLE alert MODIFY settings MEDIUMTEXT;
+-- Add non-unique index alert_notification_state_alert_id
+CREATE INDEX `IDX_alert_notification_state_alert_id` ON `alert_notification_state` (`alert_id`);
+-- Add non-unique index alert_rule_tag_alert_id
+CREATE INDEX `IDX_alert_rule_tag_alert_id` ON `alert_rule_tag` (`alert_id`);
 -- Drop old annotation table v4
 DROP TABLE IF EXISTS `annotation`
 -- create annotation table v5
@@ -410,6 +446,8 @@ CREATE TABLE IF NOT EXISTS `team_member` ( `id` BIGINT(20) PRIMARY KEY AUTO_INCR
 CREATE INDEX `IDX_team_member_org_id` ON `team_member` (`org_id`);
 -- add unique index team_member_org_id_team_id_user_id
 CREATE UNIQUE INDEX `UQE_team_member_org_id_team_id_user_id` ON `team_member` (`org_id`,`team_id`,`user_id`);
+-- add index team_member.team_id
+CREATE INDEX `IDX_team_member_team_id` ON `team_member` (`team_id`);
 -- Add column email to team table
 alter table `team` ADD COLUMN `email` VARCHAR(190) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL
 -- Add column external to team_member table
@@ -472,7 +510,13 @@ CREATE TABLE IF NOT EXISTS `user_auth_token` ( `id` BIGINT(20) PRIMARY KEY AUTO_
 CREATE UNIQUE INDEX `UQE_user_auth_token_auth_token` ON `user_auth_token` (`auth_token`);
 -- add unique index user_auth_token.prev_auth_token
 CREATE UNIQUE INDEX `UQE_user_auth_token_prev_auth_token` ON `user_auth_token` (`prev_auth_token`);
+-- add index user_auth_token.user_id
+CREATE INDEX `IDX_user_auth_token_user_id` ON `user_auth_token` (`user_id`);
 -- create cache_data table
 CREATE TABLE IF NOT EXISTS `cache_data` ( `cache_key` VARCHAR(168) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci PRIMARY KEY NOT NULL , `data` BLOB NOT NULL , `expires` INTEGER(255) NOT NULL , `created_at` INTEGER(255) NOT NULL ) ENGINE=InnoDB DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci;
 -- add unique index cache_data.cache_key
 CREATE UNIQUE INDEX `UQE_cache_data_cache_key` ON `cache_data` (`cache_key`);
+-- create short_url table v1
+CREATE TABLE IF NOT EXISTS `short_url` ( `id` BIGINT(20) PRIMARY KEY AUTO_INCREMENT NOT NULL , `org_id` BIGINT(20) NOT NULL , `uid` VARCHAR(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL , `path` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL , `created_by` INT NOT NULL , `created_at` INT NOT NULL , `last_seen_at` INT NULL ) ENGINE=InnoDB DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci;
+-- add index short_url.org_id-uid
+CREATE UNIQUE INDEX `UQE_short_url_org_id_uid` ON `short_url` (`org_id`,`uid`);

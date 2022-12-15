@@ -476,3 +476,9 @@ CREATE UNIQUE INDEX `UQE_user_auth_token_prev_auth_token` ON `user_auth_token` (
 CREATE TABLE IF NOT EXISTS `cache_data` ( `cache_key` VARCHAR(168) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci PRIMARY KEY NOT NULL , `data` BLOB NOT NULL , `expires` INTEGER(255) NOT NULL , `created_at` INTEGER(255) NOT NULL ) ENGINE=InnoDB DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci;
 -- add unique index cache_data.cache_key
 CREATE UNIQUE INDEX `UQE_cache_data_cache_key` ON `cache_data` (`cache_key`);
+-- add index team_member.team_id
+CREATE INDEX `IDX_team_member_team_id` ON `team_member` (`team_id`);
+-- Add column secure_settings in alert_notification
+alter table `alert_notification` ADD COLUMN `secure_settings` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL
+-- alter alert.settings to mediumtext
+ALTER TABLE alert MODIFY settings MEDIUMTEXT;

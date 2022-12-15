@@ -26,6 +26,8 @@ services:
       timeout: 10s
       retries: 5
       start_period: 40s
+    volumes:
+      - mysql:/var/lib/mysql
 
   grafana:
     image: grafana/grafana:${grafana_version}
@@ -42,4 +44,7 @@ services:
       GF_DATABASE_NAME: grafana_ds_tests
       GF_DATABASE_USER: grafana
       GF_DATABASE_PASSWORD: password
-  
+
+volumes:
+  mysql:
+    driver: local

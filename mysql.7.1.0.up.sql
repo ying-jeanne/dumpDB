@@ -19,7 +19,7 @@ CREATE UNIQUE INDEX `UQE_user_login` ON `user` (`login`);
 -- create index UQE_user_email - v2
 CREATE UNIQUE INDEX `UQE_user_email` ON `user` (`email`);
 -- copy data_source v1 to v2
-INSERT INTO `user` (`updated` , `version` , `name` , `salt` , `rands` , `org_id` , `is_admin` , `created` , `id` , `login` , `email` , `password` , `company`) SELECT `updated` , `version` , `name` , `salt` , `rands` , `account_id` , `is_admin` , `created` , `id` , `login` , `email` , `password` , `company` FROM `user_v1`
+INSERT INTO `user` (`updated` , `id` , `login` , `email` , `name` , `password` , `is_admin` , `version` , `salt` , `rands` , `company` , `org_id` , `created`) SELECT `updated` , `id` , `login` , `email` , `name` , `password` , `is_admin` , `version` , `salt` , `rands` , `company` , `account_id` , `created` FROM `user_v1`
 -- Drop old table user_v1
 DROP TABLE IF EXISTS `user_v1`
 -- Add column help_flags1 to user table
@@ -87,7 +87,7 @@ CREATE INDEX `IDX_dashboard_org_id` ON `dashboard` (`org_id`);
 -- create index UQE_dashboard_org_id_slug - v2
 CREATE UNIQUE INDEX `UQE_dashboard_org_id_slug` ON `dashboard` (`org_id`,`slug`);
 -- copy dashboard v1 to v2
-INSERT INTO `dashboard` (`slug` , `title` , `data` , `org_id` , `created` , `updated` , `id` , `version`) SELECT `slug` , `title` , `data` , `account_id` , `created` , `updated` , `id` , `version` FROM `dashboard_v1`
+INSERT INTO `dashboard` (`data` , `org_id` , `created` , `updated` , `id` , `version` , `slug` , `title`) SELECT `data` , `account_id` , `created` , `updated` , `id` , `version` , `slug` , `title` FROM `dashboard_v1`
 -- drop table dashboard_v1
 DROP TABLE IF EXISTS `dashboard_v1`
 -- alter dashboard.data to mediumtext v1
@@ -139,7 +139,7 @@ CREATE INDEX `IDX_dashboard_provisioning_dashboard_id` ON `dashboard_provisionin
 -- create index IDX_dashboard_provisioning_dashboard_id_name - v2
 CREATE INDEX `IDX_dashboard_provisioning_dashboard_id_name` ON `dashboard_provisioning` (`dashboard_id`,`name`);
 -- copy dashboard_provisioning v1 to v2
-INSERT INTO `dashboard_provisioning` (`id` , `dashboard_id` , `name` , `external_id`) SELECT `id` , `dashboard_id` , `name` , `external_id` FROM `dashboard_provisioning_tmp_qwerty`
+INSERT INTO `dashboard_provisioning` (`name` , `external_id` , `id` , `dashboard_id`) SELECT `name` , `external_id` , `id` , `dashboard_id` FROM `dashboard_provisioning_tmp_qwerty`
 -- drop dashboard_provisioning_tmp_qwerty
 DROP TABLE IF EXISTS `dashboard_provisioning_tmp_qwerty`
 -- Add check_sum column
@@ -165,7 +165,7 @@ CREATE INDEX `IDX_data_source_org_id` ON `data_source` (`org_id`);
 -- create index UQE_data_source_org_id_name - v2
 CREATE UNIQUE INDEX `UQE_data_source_org_id_name` ON `data_source` (`org_id`,`name`);
 -- copy data_source v1 to v2
-INSERT INTO `data_source` (`id` , `name` , `access` , `url` , `password` , `org_id` , `version` , `type` , `user` , `basic_auth_user` , `updated` , `database` , `basic_auth` , `basic_auth_password` , `is_default` , `created`) SELECT `id` , `name` , `access` , `url` , `password` , `account_id` , `version` , `type` , `user` , `basic_auth_user` , `updated` , `database` , `basic_auth` , `basic_auth_password` , `is_default` , `created` FROM `data_source_v1`
+INSERT INTO `data_source` (`access` , `database` , `user` , `password` , `id` , `type` , `basic_auth` , `basic_auth_password` , `updated` , `version` , `url` , `basic_auth_user` , `is_default` , `created` , `org_id` , `name`) SELECT `access` , `database` , `user` , `password` , `id` , `type` , `basic_auth` , `basic_auth_password` , `updated` , `version` , `url` , `basic_auth_user` , `is_default` , `created` , `account_id` , `name` FROM `data_source_v1`
 -- Drop old table data_source_v1 #2
 DROP TABLE IF EXISTS `data_source_v1`
 -- Add column with_credentials
@@ -213,7 +213,7 @@ CREATE UNIQUE INDEX `UQE_api_key_key` ON `api_key` (`key`);
 -- create index UQE_api_key_org_id_name - v2
 CREATE UNIQUE INDEX `UQE_api_key_org_id_name` ON `api_key` (`org_id`,`name`);
 -- copy api_key v1 to v2
-INSERT INTO `api_key` (`created` , `updated` , `id` , `org_id` , `name` , `key` , `role`) SELECT `created` , `updated` , `id` , `account_id` , `name` , `key` , `role` FROM `api_key_v1`
+INSERT INTO `api_key` (`role` , `created` , `updated` , `id` , `org_id` , `name` , `key`) SELECT `role` , `created` , `updated` , `id` , `account_id` , `name` , `key` FROM `api_key_v1`
 -- Drop old table api_key_v1
 DROP TABLE IF EXISTS `api_key_v1`
 -- Update api_key table charset
@@ -410,8 +410,6 @@ CREATE TABLE IF NOT EXISTS `team_member` ( `id` BIGINT(20) PRIMARY KEY AUTO_INCR
 CREATE INDEX `IDX_team_member_org_id` ON `team_member` (`org_id`);
 -- add unique index team_member_org_id_team_id_user_id
 CREATE UNIQUE INDEX `UQE_team_member_org_id_team_id_user_id` ON `team_member` (`org_id`,`team_id`,`user_id`);
--- add index team_member.team_id
-CREATE INDEX `IDX_team_member_team_id` ON `team_member` (`team_id`);
 -- Add column email to team table
 alter table `team` ADD COLUMN `email` VARCHAR(190) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL
 -- Add column external to team_member table
@@ -478,3 +476,5 @@ CREATE UNIQUE INDEX `UQE_user_auth_token_prev_auth_token` ON `user_auth_token` (
 CREATE TABLE IF NOT EXISTS `cache_data` ( `cache_key` VARCHAR(168) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci PRIMARY KEY NOT NULL , `data` BLOB NOT NULL , `expires` INTEGER(255) NOT NULL , `created_at` INTEGER(255) NOT NULL ) ENGINE=InnoDB DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci;
 -- add unique index cache_data.cache_key
 CREATE UNIQUE INDEX `UQE_cache_data_cache_key` ON `cache_data` (`cache_key`);
+-- add index team_member.team_id
+CREATE INDEX `IDX_team_member_team_id` ON `team_member` (`team_id`);
