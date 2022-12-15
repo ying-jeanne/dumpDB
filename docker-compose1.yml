@@ -6,29 +6,28 @@
 # tags:
 #   - tag1
 #   - tag2
-# the volume name dumpdb_postgres-data
 version: "3.8"
 
 services:
   database:
     build:
-      context: ./postgres_tests
-      args:
-        - postgres_version=10.15
+      context: ./mysql_tests
     environment:
-      POSTGRES_USER: grafanatest
-      POSTGRES_PASSWORD: grafanatest
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: grafana_tests
+      MYSQL_USER: grafana
+      MYSQL_PASSWORD: password
     ports:
-      - "5432:5432"
+      - "3306:3306"
     container_name: database
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready", "-d", "db_prod"]
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost", "-uroot", "-ppass"]
       interval: 15s
       timeout: 10s
       retries: 5
       start_period: 40s
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - mysql:/var/lib/mysql
 
   grafana:
     image: grafana/grafana:${grafana_version}
@@ -40,12 +39,12 @@ services:
       database:
         condition: service_healthy
     environment:
-      GF_DATABASE_TYPE: postgres
-      GF_DATABASE_HOST: database:5432
-      GF_DATABASE_NAME: grafanadstest
-      GF_DATABASE_USER: grafanatest
-      GF_DATABASE_PASSWORD: grafanatest
+      GF_DATABASE_TYPE: mysql
+      GF_DATABASE_HOST: database:3306
+      GF_DATABASE_NAME: grafana_ds_tests
+      GF_DATABASE_USER: grafana
+      GF_DATABASE_PASSWORD: password
 
 volumes:
-  postgres-data:
+  mysql:
     driver: local

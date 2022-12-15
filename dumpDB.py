@@ -1,7 +1,7 @@
 # import sqlite3
-# import psycopg2
+import psycopg2
 import mysql.connector
-# import docker
+import os
 import time
 from python_on_whales import docker
 
@@ -30,32 +30,41 @@ from python_on_whales import docker
 #     # Close the cursor
 #     curs.close()
 
-# def postgresWrite(): 
-#     conn = psycopg2.connect(
-#         host="127.0.0.1",
-#         database="grafanadstest",
-#         user="grafanatest",
-#         password="grafanatest")
+def postgresWrite(lastId: int, version: str) -> int:
+    conn = psycopg2.connect(
+        host="127.0.0.1",
+        database="grafanadstest",
+        user="grafanatest",
+        password="grafanatest")
 
-#     curs = conn.cursor()
-#     query1 = "SELECT id FROM migration_log WHERE migration_id = 'create folder table' AND success=TRUE;"
-#     curs.execute(query1)
-#     result = curs.fetchone()
-#     query2 = 'SELECT id, migration_id, sql FROM migration_log WHERE id >= {} AND success=TRUE;'
-#     queryStr2 = query2.format(result[0])
-#     curs.execute(queryStr2)
+    curs = conn.cursor()
+    query1 = "SELECT id FROM migration_log WHERE success=TRUE ORDER BY id DESC LIMIT 1;"
+    curs.execute(query1)
+    currentId = curs.fetchone()
+    query2 = 'SELECT id, migration_id, sql FROM migration_log WHERE id >= {} AND success=TRUE;'
+    queryStr2 = query2.format(lastId)
+    curs.execute(queryStr2)
 
-#     # Fetch and output result
-#     result = curs.fetchall()
+    if not curs.rowcount:
+        print("no result for version %s" %(version)) 
+        return currentId[0]
 
-#     with open('postgres.sql', 'w') as f:
-#         for id, migration_id, sqlQuery in result:
-#             f.write('-- %s\n' %migration_id)
-#             result = " ".join(line.strip() for line in sqlQuery.splitlines())
-#             f.write('%s\n' %result)
+    # Fetch and output result
+    result = curs.fetchall()
 
-#     # Close the cursor
-#     curs.close()
+    script_dir = os.path.dirname(__file__) #<-- absolute dir the script is in
+    rel_path = f"postgres/postgres.{version}.up.sql"
+    abs_file_path = os.path.join(script_dir, rel_path)
+
+    with open(abs_file_path, 'w') as f:
+        for id, migration_id, sqlQuery in result:
+            f.write('-- %s\n' %migration_id)
+            result = " ".join(line.strip() for line in sqlQuery.splitlines())
+            f.write('%s\n' %result)
+
+    # Close the cursor
+    curs.close()
+    return currentId[0]
 
 def mysqlWrite(lastId: int, version: str) -> int:
     conn = mysql.connector.connect(host='localhost',
@@ -80,8 +89,11 @@ def mysqlWrite(lastId: int, version: str) -> int:
     # Fetch and output result
     result = curs.fetchall()
 
-    fileName = 'mysql.{}.up.sql'
-    with open(fileName.format(version), 'w') as f:
+    script_dir = os.path.dirname(__file__) #<-- absolute dir the script is in
+    rel_path = f"mysql/mysql.{version}.up.sql"
+    abs_file_path = os.path.join(script_dir, rel_path)
+
+    with open(abs_file_path, 'w') as f:
         for id, migration_id, sqlQuery in result:
             f.write('-- %s\n' %migration_id)
             result = " ".join(line.strip() for line in sqlQuery.splitlines())
@@ -121,6 +133,7 @@ if __name__ == '__main__':
         docker.compose.build()
         docker.compose.up(detach=True) 
         time.sleep(50)
-        lastId = mysqlWrite(lastId, version)
+        # lastId = mysqlWrite(lastId, version)
+        lastId = postgresWrite(lastId, version)
         docker.compose.down()
         docker.compose.rm()
