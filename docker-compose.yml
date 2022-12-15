@@ -20,21 +20,26 @@ services:
     ports:
       - "3306:3306"
     container_name: database
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost", "-uroot", "-ppass"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
   grafana:
-    build: 
-      context: ./grafana
+    image: grafana/grafana:${grafana_version}
     container_name: grafana
     ports:
     # 3000 of computer to 3000 of container
       - "3000:3000"
     depends_on:
-      - database
-    command: sh -c "/wait"
+      database:
+        condition: service_healthy
     environment:
       GF_DATABASE_TYPE: mysql
       GF_DATABASE_HOST: database:3306
       GF_DATABASE_NAME: grafana_ds_tests
       GF_DATABASE_USER: grafana
       GF_DATABASE_PASSWORD: password
-      WAIT_HOSTS: mysql:3306
-      WAIT_HOSTS_TIMEOUT: 10
+  

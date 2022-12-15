@@ -62,14 +62,15 @@ def mysqlWrite(lastId: int, version: str) -> int:
                                         database='grafana_ds_tests',
                                         user='grafana',
                                         password='password',
-                                        port= 3307)
+                                        port= 3306)
     curs = conn.cursor()
-    query1 = 'SELECT id FROM migration_log ORDER BY id DESC LIMIT 1;'
+    query1 = 'SELECT id FROM migration_log WHERE success=1 ORDER BY id DESC LIMIT 1;'
     # query1 = 'SELECT id FROM migration_log WHERE migration_id = "create folder table" AND success=1;'
     curs.execute(query1)
     currentId = curs.fetchone()
-    query2 = 'SELECT id, migration_id, `sql` FROM migration_log WHERE id >= {} AND success=1;'
+    query2 = 'SELECT id, migration_id, `sql` FROM migration_log WHERE success=1 ORDER BY id ASC;'
     queryStr2 = query2.format(lastId)
+    print(queryStr2)
     curs.execute(queryStr2)
     # Fetch and output result
     result = curs.fetchall()
@@ -86,43 +87,24 @@ def mysqlWrite(lastId: int, version: str) -> int:
     return currentId
 
 if __name__ == '__main__':
-    # sqlite3Write()
     versions = [
         "7.0.0",
         "7.1.0",
+        "7.2.0",
+        "7.3.0",
     ]
     lastId = 0
     for version in versions:
-        # client = docker.from_env()
-        # print("Login return", r)
-        # client.images.pull('grafana/grafana-oss:last')
-        # l = client.containers.list()
-        # print(client.images.list)
-        # client.containers.compose("up", "-d")
-        # container = client.containers.run(
-        #     image='grafana/grafana-oss:' + version, name="grafana", ports={'3000': 3000},
-        #         environment={
-        #             "GF_DATABASE_TYPE": "mysql",
-        #             "GF_DATABASE_HOST": "172.20.0.2:3307", 
-        #             "GF_DATABASE_NAME": "grafana_ds_tests", 
-        #             "GF_DATABASE_USER": "grafana",
-        #             "GF_DATABASE_PASSWORD": "password"},
-        #         stderr=True, stdout=True, detach=True, network="ying"
-        # )
-        # container.logs()
         fileName = '.env'
         content = 'grafana_version={}'
         with open(fileName, 'w') as f:
             f.write(content.format(version))
 
-        docker.compose.build(cache=False)
-        docker.compose.up()
-       
-        
-        time.sleep(120)
-        # postgresWrite()
-        print("Start container finished, reading mysql database")
+        print("the last id is: %d" %(lastId))
+        docker.compose.build()
+        docker.compose.up(detach=True) 
+        time.sleep(50)
         lastId = mysqlWrite(lastId, version)
         docker.compose.down()
-        # container.stop()
-        # container.remove()
+        docker.compose.rm()
+        print("the last id is: %d" %(lastId))
