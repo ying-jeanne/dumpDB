@@ -5,31 +5,6 @@ import os
 import time
 from python_on_whales import docker
 
-# def sqlite3Write():
-#     # Connect to DB and create a cursor
-#     conn = sqlite3.connect('/Users/ying-jeanne/Workspace/grafana/data/grafana.db')
-#     curs = conn.cursor()
-
-#     query1 = 'SELECT id FROM migration_log WHERE migration_id = "create folder table" AND success=1;'
-#     curs.execute(query1)
-#     result = curs.fetchone()
-
-#     query2 = 'SELECT id, migration_id, sql FROM migration_log WHERE id >= {} AND success=1;'
-#     queryStr2 = query2.format(result[0])
-#     curs.execute(queryStr2)
-
-#     # Fetch and output result
-#     result = curs.fetchall()
-
-#     with open('sqlite3.sql', 'w') as f:
-#         for id, migration_id, sqlQuery in result:
-#             f.write('-- %s\n' %migration_id)
-#             result = " ".join(line.strip() for line in sqlQuery.splitlines())
-#             f.write('%s\n' %result)
-
-#     # Close the cursor
-#     curs.close()
-
 def postgresWrite(lastId: int, version: str) -> int:
     conn = psycopg2.connect(
         host="127.0.0.1",
@@ -74,7 +49,6 @@ def mysqlWrite(lastId: int, version: str) -> int:
                                         port= 3306)
     curs = conn.cursor()
     query1 = 'SELECT id FROM migration_log WHERE success=1 ORDER BY id DESC LIMIT 1;'
-    # query1 = 'SELECT id FROM migration_log WHERE migration_id = "create folder table" AND success=1;'
     curs.execute(query1)
     currentId = curs.fetchone()
     print("the result is:", currentId)
@@ -133,7 +107,7 @@ if __name__ == '__main__':
         docker.compose.build()
         docker.compose.up(detach=True) 
         time.sleep(50)
-        # lastId = mysqlWrite(lastId, version)
-        lastId = postgresWrite(lastId, version)
+        lastId = mysqlWrite(lastId, version)
+        # lastId = postgresWrite(lastId, version)
         docker.compose.down()
         docker.compose.rm()

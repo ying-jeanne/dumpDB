@@ -19,7 +19,7 @@ CREATE UNIQUE INDEX `UQE_user_login` ON `user` (`login`);
 -- create index UQE_user_email - v2
 CREATE UNIQUE INDEX `UQE_user_email` ON `user` (`email`);
 -- copy data_source v1 to v2
-INSERT INTO `user` (`salt` , `rands` , `org_id` , `created` , `id` , `version` , `login` , `name` , `updated` , `email` , `password` , `company` , `is_admin`) SELECT `salt` , `rands` , `account_id` , `created` , `id` , `version` , `login` , `name` , `updated` , `email` , `password` , `company` , `is_admin` FROM `user_v1`
+INSERT INTO `user` (`email` , `name` , `password` , `rands` , `org_id` , `is_admin` , `updated` , `id` , `version` , `login` , `salt` , `company` , `created`) SELECT `email` , `name` , `password` , `rands` , `account_id` , `is_admin` , `updated` , `id` , `version` , `login` , `salt` , `company` , `created` FROM `user_v1`
 -- Drop old table user_v1
 DROP TABLE IF EXISTS `user_v1`
 -- Add column help_flags1 to user table
@@ -28,6 +28,8 @@ alter table `user` ADD COLUMN `help_flags1` BIGINT(20) NOT NULL DEFAULT 0
 ALTER TABLE `user` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci, MODIFY `login` VARCHAR(190) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL , MODIFY `email` VARCHAR(190) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL , MODIFY `name` VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL , MODIFY `password` VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL , MODIFY `salt` VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL , MODIFY `rands` VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL , MODIFY `company` VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL , MODIFY `theme` VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL ;
 -- Add last_seen_at column to user
 alter table `user` ADD COLUMN `last_seen_at` DATETIME NULL
+-- Add missing user data
+code migration
 -- Add is_disabled column to user
 alter table `user` ADD COLUMN `is_disabled` TINYINT(1) NOT NULL DEFAULT 0
 -- Add index user.login/user.email
@@ -85,7 +87,7 @@ CREATE INDEX `IDX_dashboard_org_id` ON `dashboard` (`org_id`);
 -- create index UQE_dashboard_org_id_slug - v2
 CREATE UNIQUE INDEX `UQE_dashboard_org_id_slug` ON `dashboard` (`org_id`,`slug`);
 -- copy dashboard v1 to v2
-INSERT INTO `dashboard` (`slug` , `title` , `data` , `org_id` , `created` , `updated` , `id` , `version`) SELECT `slug` , `title` , `data` , `account_id` , `created` , `updated` , `id` , `version` FROM `dashboard_v1`
+INSERT INTO `dashboard` (`version` , `slug` , `title` , `data` , `org_id` , `created` , `updated` , `id`) SELECT `version` , `slug` , `title` , `data` , `account_id` , `created` , `updated` , `id` FROM `dashboard_v1`
 -- drop table dashboard_v1
 DROP TABLE IF EXISTS `dashboard_v1`
 -- alter dashboard.data to mediumtext v1
@@ -137,7 +139,7 @@ CREATE INDEX `IDX_dashboard_provisioning_dashboard_id` ON `dashboard_provisionin
 -- create index IDX_dashboard_provisioning_dashboard_id_name - v2
 CREATE INDEX `IDX_dashboard_provisioning_dashboard_id_name` ON `dashboard_provisioning` (`dashboard_id`,`name`);
 -- copy dashboard_provisioning v1 to v2
-INSERT INTO `dashboard_provisioning` (`id` , `dashboard_id` , `name` , `external_id`) SELECT `id` , `dashboard_id` , `name` , `external_id` FROM `dashboard_provisioning_tmp_qwerty`
+INSERT INTO `dashboard_provisioning` (`name` , `external_id` , `id` , `dashboard_id`) SELECT `name` , `external_id` , `id` , `dashboard_id` FROM `dashboard_provisioning_tmp_qwerty`
 -- drop dashboard_provisioning_tmp_qwerty
 DROP TABLE IF EXISTS `dashboard_provisioning_tmp_qwerty`
 -- Add check_sum column
@@ -163,7 +165,7 @@ CREATE INDEX `IDX_data_source_org_id` ON `data_source` (`org_id`);
 -- create index UQE_data_source_org_id_name - v2
 CREATE UNIQUE INDEX `UQE_data_source_org_id_name` ON `data_source` (`org_id`,`name`);
 -- copy data_source v1 to v2
-INSERT INTO `data_source` (`database` , `url` , `password` , `access` , `user` , `basic_auth_password` , `updated` , `org_id` , `type` , `created` , `version` , `name` , `basic_auth_user` , `is_default` , `id` , `basic_auth`) SELECT `database` , `url` , `password` , `access` , `user` , `basic_auth_password` , `updated` , `account_id` , `type` , `created` , `version` , `name` , `basic_auth_user` , `is_default` , `id` , `basic_auth` FROM `data_source_v1`
+INSERT INTO `data_source` (`updated` , `name` , `access` , `database` , `basic_auth` , `is_default` , `created` , `type` , `basic_auth_password` , `id` , `version` , `url` , `password` , `basic_auth_user` , `org_id` , `user`) SELECT `updated` , `name` , `access` , `database` , `basic_auth` , `is_default` , `created` , `type` , `basic_auth_password` , `id` , `version` , `url` , `password` , `basic_auth_user` , `account_id` , `user` FROM `data_source_v1`
 -- Drop old table data_source_v1 #2
 DROP TABLE IF EXISTS `data_source_v1`
 -- Add column with_credentials
@@ -211,7 +213,7 @@ CREATE UNIQUE INDEX `UQE_api_key_key` ON `api_key` (`key`);
 -- create index UQE_api_key_org_id_name - v2
 CREATE UNIQUE INDEX `UQE_api_key_org_id_name` ON `api_key` (`org_id`,`name`);
 -- copy api_key v1 to v2
-INSERT INTO `api_key` (`name` , `key` , `role` , `created` , `updated` , `id` , `org_id`) SELECT `name` , `key` , `role` , `created` , `updated` , `id` , `account_id` FROM `api_key_v1`
+INSERT INTO `api_key` (`updated` , `id` , `org_id` , `name` , `key` , `role` , `created`) SELECT `updated` , `id` , `account_id` , `name` , `key` , `role` , `created` FROM `api_key_v1`
 -- Drop old table api_key_v1
 DROP TABLE IF EXISTS `api_key_v1`
 -- Update api_key table charset
@@ -368,6 +370,8 @@ alter table `annotation` ADD COLUMN `epoch_end` BIGINT(20) NOT NULL DEFAULT 0
 CREATE INDEX `IDX_annotation_org_id_epoch_epoch_end` ON `annotation` (`org_id`,`epoch`,`epoch_end`);
 -- Make epoch_end the same as epoch
 UPDATE annotation SET epoch_end = epoch
+-- Move region to single row
+code migration
 -- Remove index org_id_epoch from annotation table
 DROP INDEX `IDX_annotation_org_id_epoch` ON `annotation`
 -- Remove index org_id_dashboard_id_panel_id_epoch from annotation table
