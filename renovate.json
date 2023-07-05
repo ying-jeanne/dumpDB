@@ -9,7 +9,7 @@
       "enabled": true
     },
     {
-      "matchBaseBranches": ["^release-.*"],
+      "matchBaseBranches": ["/^release/.*/"],
       "enabled": true      
     }
   ],
