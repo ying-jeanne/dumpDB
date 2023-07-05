@@ -3,6 +3,12 @@
   "extends": [
     "config:base"
   ],
+  "packageRules": [
+    {
+      "matchPackagePatterns": ["*"],
+      "enabled": false
+    }
+  ],
   "vulnerabilityAlerts": {
     "enabled": true
   },
