@@ -3,17 +3,8 @@
   "extends": [
     "config:base"
   ],
-  "packageRules": [
-    {
-      "matchBaseBranches": ["main"],
-      "enabled": true
-    },
-    {
-      "matchBaseBranches": ["/^release/.*/"],
-      "enabled": true      
-    }
-  ],
   "vulnerabilityAlerts": {
     "enabled": true
-  }
+  },
+  "baseBranches": ["main", "^release-.*/"]
 }
