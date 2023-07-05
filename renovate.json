@@ -12,7 +12,7 @@
       "matchBaseBranches": ["^release-.*"],
       "enabled": true      
     }
-  ]
+  ],
   "vulnerabilityAlerts": {
     "enabled": true
   }
